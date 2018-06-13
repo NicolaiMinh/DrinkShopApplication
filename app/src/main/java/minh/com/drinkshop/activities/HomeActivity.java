@@ -1,51 +1,70 @@
 package minh.com.drinkshop.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.view.View;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.daimajia.slider.library.SliderLayout;
 import com.daimajia.slider.library.SliderTypes.BaseSliderView;
 import com.daimajia.slider.library.SliderTypes.TextSliderView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import minh.com.drinkshop.R;
+import minh.com.drinkshop.adapter.CategoryAdapter;
 import minh.com.drinkshop.model.Banner;
+import minh.com.drinkshop.model.Category;
+import minh.com.drinkshop.model.Drink;
 import minh.com.drinkshop.retrofit.IDrinkShopAPI;
 import minh.com.drinkshop.utils.Common;
 
 public class HomeActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, CategoryAdapter.CategoryAdapterViewHolder.ClickListener {
+
+    private static final String TAG = HomeActivity.class.getSimpleName();
+    @BindView(R.id.recycler_menu)
+    RecyclerView recyclerMenu;
 
     TextView txt_name, txt_phone;
     SliderLayout sliderLayout;
 
     IDrinkShopAPI mService;
 
+    private CategoryAdapter mAdapter;
+    private List<Category> categoryList;
 
     //rxjava
     CompositeDisposable compositeDisposable = new CompositeDisposable();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        ButterKnife.bind(this);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -82,6 +101,35 @@ public class HomeActivity extends AppCompatActivity
 
         //get banners
         getBannersImage();
+        setupRecyclerCategory();
+    }
+
+    private void setupRecyclerCategory() {
+        categoryList = new ArrayList<>();
+
+        recyclerMenu.setHasFixedSize(true);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        recyclerMenu.setLayoutManager(linearLayoutManager);
+
+        getCategoryItem();
+    }
+
+    private void getCategoryItem() {
+        compositeDisposable.add(mService.getMenu()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<List<Category>>() {
+
+                    @Override
+                    public void accept(List<Category> categories) throws Exception {
+                        displayMenu(categories);
+                    }
+                }));
+    }
+
+    private void displayMenu(List<Category> categories) {
+        mAdapter = new CategoryAdapter(this, categories, this);
+        recyclerMenu.setAdapter(mAdapter);
     }
 
     private void getBannersImage() {
@@ -173,5 +221,15 @@ public class HomeActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+
+    //implement onclik item in category list
+    @Override
+    public void onCLickItem(int position) {
+        Common.currentCategory = mAdapter.getCategoryList().get(position);
+        startActivity(new Intent(HomeActivity.this, DrinkActivity.class));
+
+        Log.d(TAG, "position " + mAdapter.getCategoryList().get(position));
     }
 }

@@ -4,7 +4,9 @@ import java.util.List;
 
 import io.reactivex.Observable;
 import minh.com.drinkshop.model.Banner;
+import minh.com.drinkshop.model.Category;
 import minh.com.drinkshop.model.CheckUserResponse;
+import minh.com.drinkshop.model.Drink;
 import minh.com.drinkshop.model.User;
 import retrofit2.Call;
 import retrofit2.http.Field;
@@ -29,9 +31,16 @@ public interface IDrinkShopAPI {
                              @Field("address") String address);
 
     @FormUrlEncoded
+    @POST("getdrinkbymenuid.php")
+    Observable<List<Drink>> getDrinkByMenuId(@Field("menuid") String menuid);
+
+    @FormUrlEncoded
     @POST("getuser.php")
     Call<User> getUserInformation(@Field("phone") String phone);
 
     @GET("getbanner.php")
     Observable<List<Banner>> getBanners();
+
+    @GET("getmenu.php")
+    Observable<List<Category>> getMenu();
 }

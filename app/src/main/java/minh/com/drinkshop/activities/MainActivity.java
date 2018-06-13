@@ -157,8 +157,8 @@ public class MainActivity extends AppCompatActivity {
     public void onViewClick(View view) {
         switch (view.getId()) {
             case R.id.btn_continute:
-                getUserForSGVN();
-//                startLoginPage(LoginType.PHONE);//login to account kit facebook
+//                getUserForSGVN();
+                startLoginPage(LoginType.PHONE);//login to account kit facebook
                 break;
         }
     }
@@ -212,6 +212,9 @@ public class MainActivity extends AppCompatActivity {
                                                                 //if user already exists , just start new activity
                                                                 alertDialog.dismiss();
 
+
+                                                                //get current user
+                                                                Common.currentUser = response.body();
                                                                 //start new activity
                                                                 startActivity(new Intent(MainActivity.this, HomeActivity.class));
                                                                 finish();//close MainActivity
