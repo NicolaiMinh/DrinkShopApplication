@@ -8,11 +8,14 @@ import minh.com.drinkshop.model.Category;
 import minh.com.drinkshop.model.CheckUserResponse;
 import minh.com.drinkshop.model.Drink;
 import minh.com.drinkshop.model.User;
+import okhttp3.MultipartBody;
 import retrofit2.Call;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
+import retrofit2.http.Multipart;
 import retrofit2.http.POST;
+import retrofit2.http.Part;
 
 /**
  * Created by sgvn144 on 2018/06/13.
@@ -43,4 +46,8 @@ public interface IDrinkShopAPI {
 
     @GET("getmenu.php")
     Observable<List<Category>> getMenu();
+
+    @Multipart//send file
+    @POST("uploadavatar.php")
+    Call<String> uploadFile(@Part MultipartBody.Part phone, @Part MultipartBody.Part file);//updateAvatar($phone, $filename)
 }

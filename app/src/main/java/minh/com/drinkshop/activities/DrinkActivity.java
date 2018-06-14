@@ -6,6 +6,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,4 +86,24 @@ public class DrinkActivity extends AppCompatActivity implements DrinkAdapter.Dri
     public void onCLickItem(int position) {
 
     }
+
+    //exit application when press back
+    boolean isBackButtonPress = false;
+
+    @Override
+    public void onBackPressed() {
+        if(isBackButtonPress){
+            super.onBackPressed();
+            return;
+        }
+        this.isBackButtonPress = true;
+        Toast.makeText(this, "Please click Back again to exit", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        isBackButtonPress = false;
+    }
+
 }

@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://D:\Repository\DrinkShopApplication\DrinkShop.iml" filepath="D:\Repository\DrinkShopApplication\DrinkShop.iml" />
       <module fileurl="file://$PROJECT_DIR$/DrinkShopApplication.iml" filepath="$PROJECT_DIR$/DrinkShopApplication.iml" />
+      <module fileurl="file://D:\Repository\DrinkShopApplication\DrinkShopApplication.iml" filepath="D:\Repository\DrinkShopApplication\DrinkShopApplication.iml" />
+      <module fileurl="file://$PROJECT_DIR$/aFileChooser/aFileChooser.iml" filepath="$PROJECT_DIR$/aFileChooser/aFileChooser.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
