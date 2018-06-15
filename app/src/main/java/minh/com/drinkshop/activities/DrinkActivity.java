@@ -106,4 +106,10 @@ public class DrinkActivity extends AppCompatActivity implements DrinkAdapter.Dri
         isBackButtonPress = false;
     }
 
+    @Override
+    protected void onDestroy() {
+        compositeDisposable.dispose();
+        super.onDestroy();
+    }
+
 }

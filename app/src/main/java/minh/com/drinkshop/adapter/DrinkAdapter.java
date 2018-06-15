@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,12 +19,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.cepheuen.elegantnumberbutton.view.ElegantNumberButton;
+import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import minh.com.drinkshop.R;
+import minh.com.drinkshop.databases.modelDB.Cart;
 import minh.com.drinkshop.model.Drink;
 import minh.com.drinkshop.utils.Common;
 
@@ -159,7 +162,7 @@ public class DrinkAdapter extends RecyclerView.Adapter<DrinkAdapter.DrinkAdapter
                     return;
                 }
 
-                showConfirmDialog(position, txt_count.getNumber(), Common.sizeOfCup, Common.sugar, Common.ice);
+                showConfirmDialog(position, txt_count.getNumber());
                 dialog.dismiss();
             }
         });
@@ -168,18 +171,18 @@ public class DrinkAdapter extends RecyclerView.Adapter<DrinkAdapter.DrinkAdapter
 
     }
 
-    private void showConfirmDialog(int position, String number, int sizeOfCup, int sugar, int ice) {
+    private void showConfirmDialog(final int position, final String number) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         View itemView = LayoutInflater.from(context).inflate(R.layout.confirm_add_to_cart_layout, null);
 
 
         //view element
         ImageView image_product = itemView.findViewById(R.id.image_product);
-        TextView txt_cart_product_name = itemView.findViewById(R.id.txt_cart_product_name);
-        TextView txt_cart_product_price = itemView.findViewById(R.id.txt_cart_product_price);
+        final TextView txt_cart_product_name = itemView.findViewById(R.id.txt_cart_product_name);
+        final TextView txt_cart_product_price = itemView.findViewById(R.id.txt_cart_product_price);
         TextView txt_cart_product_sugar = itemView.findViewById(R.id.txt_cart_product_sugar);
         TextView txt_cart_product_ice = itemView.findViewById(R.id.txt_cart_product_ice);
-        TextView txt_topping_extra = itemView.findViewById(R.id.txt_topping_extra);
+        final TextView txt_topping_extra = itemView.findViewById(R.id.txt_topping_extra);
 
         //set data
         Picasso.with(context)
@@ -194,8 +197,8 @@ public class DrinkAdapter extends RecyclerView.Adapter<DrinkAdapter.DrinkAdapter
 
         double totalPrice = (Double.parseDouble(drinkList.get(position).getPrice()) * Double.parseDouble(number)) + Common.toppingPrice;
 
-        if(Common.sizeOfCup == 1){
-            totalPrice +=  0.5; //size lon+ them 0.5$
+        if (Common.sizeOfCup == 1) {
+            totalPrice += 0.5; //size lon+ them 0.5$
         }
 
         txt_cart_product_price.setText(new StringBuffer("$").append(totalPrice));
@@ -206,12 +209,33 @@ public class DrinkAdapter extends RecyclerView.Adapter<DrinkAdapter.DrinkAdapter
         }
         txt_topping_extra.setText(topping_final_comment);
 
+        final double finalTotalPrice = totalPrice;
         builder.setNegativeButton("Confirm", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                //add to database
                 dialog.dismiss();
-                resetData();
+
+                try {
+                    //add to room  database
+                    //Create new Cart item
+                    Cart cartItem = new Cart();
+                    cartItem.name = txt_cart_product_name.getText().toString();
+                    cartItem.amount = Integer.parseInt(number);
+                    cartItem.sugar = Common.sugar;
+                    cartItem.ice = Common.ice;
+                    cartItem.price = finalTotalPrice;
+                    cartItem.toppingExtras = txt_topping_extra.getText().toString();
+                    cartItem.link = drinkList.get(position).getLink();
+
+                    //add to database
+                    Common.cartRepository.insertToCart(cartItem);
+
+                    Log.d("DrinkAdapter", new Gson().toJson(cartItem));
+                    Toast.makeText(context, "Save item to cart successful!", Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
 

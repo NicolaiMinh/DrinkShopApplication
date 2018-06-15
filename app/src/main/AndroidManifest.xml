@@ -3,7 +3,7 @@
     package="minh.com.drinkshop">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -34,7 +34,8 @@
             android:name=".activities.HomeActivity"
             android:label="@string/title_activity_home"
             android:theme="@style/AppTheme" />
-        <activity android:name=".activities.DrinkActivity"></activity>
+        <activity android:name=".activities.DrinkActivity" />
+        <activity android:name=".activities.CartActivity"></activity>
     </application>
 
 </manifest>

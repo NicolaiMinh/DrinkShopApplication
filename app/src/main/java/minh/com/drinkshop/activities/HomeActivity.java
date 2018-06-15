@@ -20,7 +20,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,6 +29,7 @@ import com.daimajia.slider.library.SliderTypes.BaseSliderView;
 import com.daimajia.slider.library.SliderTypes.TextSliderView;
 import com.facebook.accountkit.AccountKit;
 import com.ipaulpro.afilechooser.utils.FileUtils;
+import com.nex3z.notificationbadge.NotificationBadge;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -38,7 +39,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import de.hdodenhof.circleimageview.CircleImageView;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -46,6 +46,10 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import minh.com.drinkshop.R;
 import minh.com.drinkshop.adapter.CategoryAdapter;
+import minh.com.drinkshop.databases.datasource.CartRepository;
+import minh.com.drinkshop.databases.local.CartDataSource;
+import minh.com.drinkshop.databases.local.CartDatabase;
+import minh.com.drinkshop.databases.modelDB.Cart;
 import minh.com.drinkshop.model.Banner;
 import minh.com.drinkshop.model.Category;
 import minh.com.drinkshop.model.Drink;
@@ -70,6 +74,9 @@ public class HomeActivity extends AppCompatActivity
     SliderLayout sliderLayout;
 
     CircleImageView imageAvatar;
+
+    NotificationBadge badge;//so count tren shopping cart
+    ImageView cart_icon;
 
     IDrinkShopAPI mService;
 
@@ -137,6 +144,14 @@ public class HomeActivity extends AppCompatActivity
 
         //set imageAvatar
         setImageAvatar();
+
+        //init room persistence database
+        initRoomPersistence();
+    }
+
+    private void initRoomPersistence() {
+        Common.cartDatabase = CartDatabase.getInstance(this);
+        Common.cartRepository = CartRepository.getInstance(CartDataSource.getInstance(Common.cartDatabase.cartDAO()));
     }
 
     private void setImageAvatar() {
@@ -246,14 +261,49 @@ public class HomeActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+        if (badge != null) {
+            updateCartCount();
+        }
         isBackButtonPress = false;
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.home, menu);
+        getMenuInflater().inflate(R.menu.menu_action_bar, menu);
+        View view = menu.findItem(R.id.cart_menu).getActionView();//tro toi file menu_action_bar.
+        badge = view.findViewById(R.id.badge);// so count trên hinh shopping
+
+        cart_icon = view.findViewById(R.id.cart_icon);
+        cart_icon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //move to CartActivity
+                startActivity(new Intent(HomeActivity.this, CartActivity.class  ));
+            }
+        });
+
+
+        updateCartCount();
+
         return true;
+    }
+
+    private void updateCartCount() {
+        if (badge == null) {
+            return;
+        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (Common.cartRepository.countCartItems() == 0) {//dem so cart item trong database
+                    badge.setVisibility(View.INVISIBLE);
+                } else {
+                    badge.setVisibility(View.VISIBLE);
+                    badge.setText(String.valueOf(Common.cartRepository.countCartItems()));//set count cart item
+                }
+            }
+        });
     }
 
     @Override
@@ -264,7 +314,8 @@ public class HomeActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.cart_menu) {
+            Toast.makeText(this, "cart click", Toast.LENGTH_SHORT).show();
             return true;
         }
 
@@ -386,4 +437,5 @@ public class HomeActivity extends AppCompatActivity
     public void onProgressUpdate(int percentage) {
 
     }
+
 }

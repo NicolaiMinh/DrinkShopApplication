@@ -3,6 +3,8 @@ package minh.com.drinkshop.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import minh.com.drinkshop.databases.datasource.CartRepository;
+import minh.com.drinkshop.databases.local.CartDatabase;
 import minh.com.drinkshop.model.Category;
 import minh.com.drinkshop.model.Drink;
 import minh.com.drinkshop.model.User;
@@ -33,10 +35,15 @@ public class Common {
     public static int sugar = -1;//-1: no choose -> error
     public static int ice = -1;//-1: no choose -> error
 
-
-
+    //create retrofit instance
     public static IDrinkShopAPI getAPI() {
         return RetrofitClient.getClient(BASE_URL)
                 .create(IDrinkShopAPI.class);
     }
+
+    //create room instance
+    public static CartDatabase cartDatabase;
+    public static CartRepository cartRepository;
+
+
 }
