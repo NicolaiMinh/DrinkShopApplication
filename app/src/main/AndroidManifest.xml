@@ -35,7 +35,8 @@
             android:label="@string/title_activity_home"
             android:theme="@style/AppTheme" />
         <activity android:name=".activities.DrinkActivity" />
-        <activity android:name=".activities.CartActivity"></activity>
+        <activity android:name=".activities.CartActivity" />
+        <activity android:name=".activities.FavoriteActivity"></activity>
     </application>
 
 </manifest>

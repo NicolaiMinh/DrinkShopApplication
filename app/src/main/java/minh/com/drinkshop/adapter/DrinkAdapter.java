@@ -27,6 +27,7 @@ import java.util.List;
 
 import minh.com.drinkshop.R;
 import minh.com.drinkshop.databases.modelDB.Cart;
+import minh.com.drinkshop.databases.modelDB.Favorite;
 import minh.com.drinkshop.model.Drink;
 import minh.com.drinkshop.utils.Common;
 
@@ -59,8 +60,8 @@ public class DrinkAdapter extends RecyclerView.Adapter<DrinkAdapter.DrinkAdapter
     }
 
     @Override
-    public void onBindViewHolder(@NonNull DrinkAdapterViewHolder holder, final int position) {
-        Drink drink = drinkList.get(position);
+    public void onBindViewHolder(@NonNull final DrinkAdapterViewHolder holder, final int position) {
+        final Drink drink = drinkList.get(position);
         Picasso.with(context)
                 .load(drink.getLink())
                 .into(holder.image_product);
@@ -74,6 +75,43 @@ public class DrinkAdapter extends RecyclerView.Adapter<DrinkAdapter.DrinkAdapter
                 showAddToCartDialog(position);
             }
         });
+
+        //on favorite
+        if (Common.favoriteRepository.isFavorite(Integer.parseInt(drink.getID())) == 1) {
+            holder.btn_favorite_cart.setImageResource(R.drawable.ic_favorite_white_24dp);
+        } else {
+            holder.btn_favorite_cart.setImageResource(R.drawable.ic_favorite_border_white_24dp);
+        }
+
+        holder.btn_favorite_cart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (Common.favoriteRepository.isFavorite(Integer.parseInt(drink.getID())) != 1) {
+                    addOrRemoveFavorite(drink, true);
+                    holder.btn_favorite_cart.setImageResource(R.drawable.ic_favorite_white_24dp);
+                } else {
+                    addOrRemoveFavorite(drink, false);
+                    holder.btn_favorite_cart.setImageResource(R.drawable.ic_favorite_border_white_24dp);
+                }
+            }
+        });
+    }
+
+    private void addOrRemoveFavorite(Drink drink, boolean isAdd) {
+        Favorite favorite = new Favorite();
+        favorite.id = drink.getID();
+        favorite.link = drink.getLink();
+        favorite.name = drink.getName();
+        favorite.price = drink.getPrice();
+        favorite.menuID = drink.getMenuId();
+
+        if (isAdd) {
+            //add
+            Common.favoriteRepository.insertFavorite(favorite);
+        }else{
+            //remove
+            Common.favoriteRepository.deleteFavoriteItem(favorite);
+        }
     }
 
     private void showAddToCartDialog(final int position) {
@@ -308,7 +346,7 @@ public class DrinkAdapter extends RecyclerView.Adapter<DrinkAdapter.DrinkAdapter
     public static class DrinkAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private ClickListener mListener;
         private ImageView image_product;
-        private Button btn_add_cart;
+        private ImageView btn_add_cart, btn_favorite_cart;
         private TextView txt_drink_name, drink_price;
 
 
@@ -322,6 +360,7 @@ public class DrinkAdapter extends RecyclerView.Adapter<DrinkAdapter.DrinkAdapter
             txt_drink_name = itemView.findViewById(R.id.txt_drink_name);
             drink_price = itemView.findViewById(R.id.drink_price);
             btn_add_cart = itemView.findViewById(R.id.btn_add_cart);
+            btn_favorite_cart = itemView.findViewById(R.id.btn_favorite_cart);
         }
 
         @Override

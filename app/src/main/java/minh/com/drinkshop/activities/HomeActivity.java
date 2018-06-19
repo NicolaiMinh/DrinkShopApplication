@@ -47,9 +47,10 @@ import io.reactivex.schedulers.Schedulers;
 import minh.com.drinkshop.R;
 import minh.com.drinkshop.adapter.CategoryAdapter;
 import minh.com.drinkshop.databases.datasource.CartRepository;
+import minh.com.drinkshop.databases.datasource.FavoriteRepository;
 import minh.com.drinkshop.databases.local.CartDataSource;
-import minh.com.drinkshop.databases.local.CartDatabase;
-import minh.com.drinkshop.databases.modelDB.Cart;
+import minh.com.drinkshop.databases.local.FavoriteDataSource;
+import minh.com.drinkshop.databases.local.RoomDatabase;
 import minh.com.drinkshop.model.Banner;
 import minh.com.drinkshop.model.Category;
 import minh.com.drinkshop.model.Drink;
@@ -150,8 +151,9 @@ public class HomeActivity extends AppCompatActivity
     }
 
     private void initRoomPersistence() {
-        Common.cartDatabase = CartDatabase.getInstance(this);
-        Common.cartRepository = CartRepository.getInstance(CartDataSource.getInstance(Common.cartDatabase.cartDAO()));
+        Common.roomDatabase = RoomDatabase.getInstance(this);
+        Common.cartRepository = CartRepository.getInstance(CartDataSource.getInstance(Common.roomDatabase.cartDAO()));
+        Common.favoriteRepository = FavoriteRepository.getInstance(FavoriteDataSource.getInstance(Common.roomDatabase.favoriteDAO()));
     }
 
     private void setImageAvatar() {
@@ -279,7 +281,7 @@ public class HomeActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 //move to CartActivity
-                startActivity(new Intent(HomeActivity.this, CartActivity.class  ));
+                startActivity(new Intent(HomeActivity.this, CartActivity.class));
             }
         });
 
@@ -356,6 +358,8 @@ public class HomeActivity extends AppCompatActivity
 
             builder.show();
 
+        } else if (id == R.id.nav_favorite) {
+            startActivity(new Intent(HomeActivity.this, FavoriteActivity.class));
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import minh.com.drinkshop.databases.datasource.CartRepository;
-import minh.com.drinkshop.databases.local.CartDatabase;
+import minh.com.drinkshop.databases.datasource.FavoriteRepository;
+import minh.com.drinkshop.databases.local.RoomDatabase;
 import minh.com.drinkshop.model.Category;
 import minh.com.drinkshop.model.Drink;
 import minh.com.drinkshop.model.User;
@@ -42,8 +43,9 @@ public class Common {
     }
 
     //create room instance
-    public static CartDatabase cartDatabase;
+    public static RoomDatabase roomDatabase;
     public static CartRepository cartRepository;
+    public static FavoriteRepository favoriteRepository;
 
 
 }
