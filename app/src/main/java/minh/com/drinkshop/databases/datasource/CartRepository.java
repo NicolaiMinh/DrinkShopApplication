@@ -59,4 +59,9 @@ public class CartRepository implements ICartDataSource {
     public void deleteCartItem(Cart... carts) {
         iCartDataSource.deleteCartItem(carts);
     }
+
+    @Override
+    public double sumPrice() {
+        return iCartDataSource.sumPrice();
+    }
 }

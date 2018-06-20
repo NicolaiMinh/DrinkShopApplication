@@ -24,4 +24,6 @@ public interface ICartDataSource {
     void updateToCart(Cart... carts);//update cart
 
     void deleteCartItem(Cart... carts);//delete cart
+
+    double sumPrice();//dem tong so tien trong cart
 }

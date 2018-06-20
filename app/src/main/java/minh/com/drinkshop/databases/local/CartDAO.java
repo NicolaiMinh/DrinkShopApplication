@@ -27,6 +27,11 @@ public interface CartDAO {
     @Query("SELECT COUNT(*) FROM Cart")
     int countCartItems();//dem so luong cart
 
+
+    @Query("SELECT SUM(price) FROM Cart")
+    double sumPrice();//dem tong so tien trong cart
+
+
     @Query("DELETE FROM Cart")
     void emptyCart();//xoa data cart
 
@@ -38,6 +43,8 @@ public interface CartDAO {
 
     @Delete
     void deleteCartItem(Cart... carts);//delete cart
+
+
 }
 
 /*

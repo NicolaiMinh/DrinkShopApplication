@@ -35,6 +35,9 @@ public class Cart {
     @ColumnInfo(name = "ice")
     public int ice;//luong da chon
 
+    @ColumnInfo(name = "size")
+    public int size;//size da chon
+
     @ColumnInfo(name = "toppingExtras")
     public String toppingExtras;//luong topping extra chon
 

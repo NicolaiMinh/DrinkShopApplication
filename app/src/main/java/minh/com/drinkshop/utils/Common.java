@@ -11,6 +11,7 @@ import minh.com.drinkshop.model.Drink;
 import minh.com.drinkshop.model.User;
 import minh.com.drinkshop.retrofit.IDrinkShopAPI;
 import minh.com.drinkshop.retrofit.RetrofitClient;
+import minh.com.drinkshop.retrofit.RetrofitScalarsClient;
 
 /**
  * Created by sgvn144 on 2018/06/13.
@@ -18,6 +19,8 @@ import minh.com.drinkshop.retrofit.RetrofitClient;
 
 public class Common {
     public static final String BASE_URL = "http://10.0.2.2/drinkshop/";//change localhost to 10.0.2.2
+    public static final String API_GET_TOKEN = "http://10.0.2.2/braintree/main.php"; //localhost -> 10.0.2.2
+    public static final String API_CHECK_OUT = "http://10.0.2.2/braintree/checkout.php"; //localhost -> 10.0.2.2
 
     public static final String TOPPING_MENU_ID = "3";// ID =3 TRONG MYSQL
     public static User currentUser = null;
@@ -39,6 +42,12 @@ public class Common {
     //create retrofit instance
     public static IDrinkShopAPI getAPI() {
         return RetrofitClient.getClient(BASE_URL)
+                .create(IDrinkShopAPI.class);
+    }
+
+    //create scalars retrofit instance
+    public static IDrinkShopAPI getScalarAPI() {
+        return RetrofitScalarsClient.getScalarsClient(BASE_URL)
                 .create(IDrinkShopAPI.class);
     }
 

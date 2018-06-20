@@ -227,8 +227,9 @@ public class DrinkAdapter extends RecyclerView.Adapter<DrinkAdapter.DrinkAdapter
                 .load(drinkList.get(position).getLink())
                 .into(image_product);
         txt_cart_product_name.setText(new StringBuffer(drinkList.get(position).getName()).append(" x")
-                .append(number)// product x 3
-                .append(Common.sizeOfCup == 0 ? " Size M" : " Size L").toString());//size of cup
+                        .append(Common.sizeOfCup == 0 ? " Size M" : " Size L")
+                .append(number).toString()// product x 3
+                );//size of cup
 
         txt_cart_product_ice.setText(new StringBuffer("Ice: ").append(Common.ice).append("%").toString());
         txt_cart_product_sugar.setText(new StringBuffer("Sugar: ").append(Common.sugar).append("%").toString());
@@ -236,10 +237,10 @@ public class DrinkAdapter extends RecyclerView.Adapter<DrinkAdapter.DrinkAdapter
         double totalPrice = (Double.parseDouble(drinkList.get(position).getPrice()) * Double.parseDouble(number)) + Common.toppingPrice;
 
         if (Common.sizeOfCup == 1) {
-            totalPrice += 0.5; //size lon+ them 0.5$
+            totalPrice += (0.5 * Double.parseDouble(number)); //size lon+ them 0.5$
         }
 
-        txt_cart_product_price.setText(new StringBuffer("$").append(totalPrice));
+
 
         StringBuilder topping_final_comment = new StringBuilder("");
         for (String line : Common.toppingAdded) {
@@ -247,7 +248,10 @@ public class DrinkAdapter extends RecyclerView.Adapter<DrinkAdapter.DrinkAdapter
         }
         txt_topping_extra.setText(topping_final_comment);
 
-        final double finalTotalPrice = totalPrice;
+        final double finalTotalPrice = Math.round(totalPrice);
+
+        txt_cart_product_price.setText(new StringBuffer("$").append(finalTotalPrice));
+
         builder.setNegativeButton("Confirm", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -257,13 +261,14 @@ public class DrinkAdapter extends RecyclerView.Adapter<DrinkAdapter.DrinkAdapter
                     //add to room  database
                     //Create new Cart item
                     Cart cartItem = new Cart();
-                    cartItem.name = txt_cart_product_name.getText().toString();
+                    cartItem.name = drinkList.get(position).getName();
                     cartItem.amount = Integer.parseInt(number);
                     cartItem.sugar = Common.sugar;
                     cartItem.ice = Common.ice;
                     cartItem.price = finalTotalPrice;
                     cartItem.toppingExtras = txt_topping_extra.getText().toString();
                     cartItem.link = drinkList.get(position).getLink();
+                    cartItem.size = Common.sizeOfCup;
 
                     //add to database
                     Common.cartRepository.insertToCart(cartItem);

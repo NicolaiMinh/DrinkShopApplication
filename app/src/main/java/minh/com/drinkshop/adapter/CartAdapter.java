@@ -7,6 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.cepheuen.elegantnumberbutton.view.ElegantNumberButton;
@@ -16,7 +18,7 @@ import java.util.List;
 
 import minh.com.drinkshop.R;
 import minh.com.drinkshop.databases.modelDB.Cart;
-import minh.com.drinkshop.model.Category;
+import minh.com.drinkshop.databases.modelDB.Favorite;
 import minh.com.drinkshop.utils.Common;
 
 /**
@@ -48,12 +50,15 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartAdapterVie
     }
 
     @Override
-    public void onBindViewHolder(@NonNull CartAdapterViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull final CartAdapterViewHolder holder, final int position) {
         Cart cart = cartList.get(position);
         Picasso.with(context)
                 .load(cart.link)
                 .into(holder.image_product);
-        holder.txt_product_name.setText(cart.name);
+        holder.txt_product_name.setText(new StringBuilder(cart.name)
+                .append(" x")
+                .append(cart.amount)
+                .append(cart.size == 0 ? " Size M" : " Size L"));
         holder.txt_amount.setNumber(String.valueOf(cart.amount));
 
         holder.txt_sugar_ice.setText(new StringBuffer("Sugar: ").append(cart.sugar)
@@ -64,13 +69,21 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartAdapterVie
 
         holder.txt_price.setText(new StringBuffer("$").append(cart.price));
 
+        //get price of once cup with all options
+        final double priceOfCup = cart.price / cart.amount;
+
         //auto save item when user change amount
         holder.txt_amount.setOnValueChangeListener(new ElegantNumberButton.OnValueChangeListener() {
             @Override
             public void onValueChange(ElegantNumberButton view, int oldValue, int newValue) {
                 Cart cart = cartList.get(position);
                 cart.amount = newValue;
+
+                cart.price = Math.round(priceOfCup * newValue);
+
                 Common.cartRepository.updateToCart(cart);
+
+                holder.txt_price.setText(new StringBuilder("$").append(cart.price));
             }
         });
     }
@@ -78,6 +91,18 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartAdapterVie
     @Override
     public int getItemCount() {
         return cartList == null ? 0 : cartList.size();
+    }
+
+    //deleted item from list with deletedIndex
+    public void removeItem(int position) {
+        cartList.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    //restore item from list with deletedIndex
+    public void restoreItem(Cart item, int position) {
+        cartList.add(position, item);
+        notifyItemInserted(position);
     }
 
     public List<Cart> getCartList() {
@@ -90,6 +115,8 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartAdapterVie
         private TextView txt_product_name, txt_sugar_ice, txt_price;
         private ElegantNumberButton txt_amount;
 
+        public RelativeLayout view_background;
+        public LinearLayout view_foreground;
 
         public CartAdapterViewHolder(View itemView, ClickListener listener) {
             super(itemView);
@@ -102,6 +129,9 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartAdapterVie
             txt_sugar_ice = itemView.findViewById(R.id.txt_sugar_ice);
             txt_price = itemView.findViewById(R.id.txt_price);
             txt_amount = itemView.findViewById(R.id.txt_amount);
+
+            view_background = itemView.findViewById(R.id.view_background);
+            view_foreground = itemView.findViewById(R.id.view_foreground);
         }
 
         @Override

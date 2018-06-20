@@ -60,4 +60,9 @@ public class CartDataSource implements ICartDataSource {
     public void deleteCartItem(Cart... carts) {
         cartDAO.deleteCartItem(carts);
     }
+
+    @Override
+    public double sumPrice() {
+        return cartDAO.sumPrice();
+    }
 }
