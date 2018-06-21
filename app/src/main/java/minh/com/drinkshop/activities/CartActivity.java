@@ -214,65 +214,66 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartA
     }
 
     private void placeOrderToServer() {
-        //create dialog
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Place Order");
+        if (Common.currentUser != null) {
 
-        //setup view
-        View submit_order_layout = LayoutInflater.from(this).inflate(R.layout.submit_order_layout, null);
 
-        final EditText edt_comment = submit_order_layout.findViewById(R.id.edt_comment);
-        final EditText edt_other_address = submit_order_layout.findViewById(R.id.edt_other_address);
+            //create dialog
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Place Order");
 
-        final RadioButton rdi_user_address = submit_order_layout.findViewById(R.id.rdi_user_address);
-        final RadioButton rdi_other_address = submit_order_layout.findViewById(R.id.rdi_other_address);
+            //setup view
+            View submit_order_layout = LayoutInflater.from(this).inflate(R.layout.submit_order_layout, null);
 
-        //set event
-        rdi_user_address.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    edt_other_address.setEnabled(false);
+            final EditText edt_comment = submit_order_layout.findViewById(R.id.edt_comment);
+            final EditText edt_other_address = submit_order_layout.findViewById(R.id.edt_other_address);
+
+            final RadioButton rdi_user_address = submit_order_layout.findViewById(R.id.rdi_user_address);
+            final RadioButton rdi_other_address = submit_order_layout.findViewById(R.id.rdi_other_address);
+
+            //set event
+            rdi_user_address.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked) {
+                        edt_other_address.setEnabled(false);
+                    }
                 }
-            }
-        });
-        rdi_other_address.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    edt_other_address.setEnabled(true);
+            });
+            rdi_other_address.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked) {
+                        edt_other_address.setEnabled(true);
+                    }
                 }
-            }
-        });
+            });
 
-        builder.setView(submit_order_layout);
+            builder.setView(submit_order_layout);
 
-        //set button dialog
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        }).setPositiveButton("Submit", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                //get data input
-                orderComment = edt_comment.getText().toString();
-                if (rdi_user_address.isChecked()) {
-                    orderAddress = Common.currentUser.getAddress().toString();
-                } else if (rdi_other_address.isChecked()) {
-                    orderAddress = edt_other_address.getText().toString();
-                } else {
-                    orderAddress = "";
+            //set button dialog
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
                 }
+            }).setPositiveButton("Submit", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    //get data input
+                    orderComment = edt_comment.getText().toString();
+                    if (rdi_user_address.isChecked()) {
+                        orderAddress = Common.currentUser.getAddress().toString();
+                    } else if (rdi_other_address.isChecked()) {
+                        orderAddress = edt_other_address.getText().toString();
+                    } else {
+                        orderAddress = "";
+                    }
 
-                //submit payment
-                DropInRequest dropInRequest = new DropInRequest().clientToken(String.valueOf(token[1]));
-                //DropInRequest dropInRequest = new DropInRequest()
-                //.clientToken("eyJ2ZXJzaW9uIjoyLCJhdXRob3JpemF0aW9uRmluZ2VycHJpbnQiOiI1Y2YxNjE1NjUzNDg1OWQ5OTVkYjhjOGExN2EyNjUxOTE1ZTE5MDNjYTk4ZGQwYzE0YmE5ZDgzZjAwOTJkYjlkfGNyZWF0ZWRfYXQ9MjAxOC0wNi0wOFQwNjoyNjoxNS4xMjQ4OTkwMzQrMDAwMFx1MDAyNm1lcmNoYW50X2lkPTVwd3hiNHR5NnY5Ym5meDhcdTAwMjZwdWJsaWNfa2V5PWRrNXR4dGo3NmM4YzU3bm4iLCJjb25maWdVcmwiOiJodHRwczovL2FwaS5zYW5kYm94LmJyYWludHJlZWdhdGV3YXkuY29tOjQ0My9tZXJjaGFudHMvNXB3eGI0dHk2djlibmZ4OC9jbGllbnRfYXBpL3YxL2NvbmZpZ3VyYXRpb24iLCJjaGFsbGVuZ2VzIjpbXSwiZW52aXJvbm1lbnQiOiJzYW5kYm94IiwiY2xpZW50QXBpVXJsIjoiaHR0cHM6Ly9hcGkuc2FuZGJveC5icmFpbnRyZWVnYXRld2F5LmNvbTo0NDMvbWVyY2hhbnRzLzVwd3hiNHR5NnY5Ym5meDgvY2xpZW50X2FwaSIsImFzc2V0c1VybCI6Imh0dHBzOi8vYXNzZXRzLmJyYWludHJlZWdhdGV3YXkuY29tIiwiYXV0aFVybCI6Imh0dHBzOi8vYXV0aC52ZW5tby5zYW5kYm94LmJyYWludHJlZWdhdGV3YXkuY29tIiwiYW5hbHl0aWNzIjp7InVybCI6Imh0dHBzOi8vb3JpZ2luLWFuYWx5dGljcy1zYW5kLnNhbmRib3guYnJhaW50cmVlLWFwaS5jb20vNXB3eGI0dHk2djlibmZ4OCJ9LCJ0aHJlZURTZWN1cmVFbmFibGVkIjp0cnVlLCJwYXlwYWxFbmFibGVkIjp0cnVlLCJwYXlwYWwiOnsiZGlzcGxheU5hbWUiOiJTR1ZOIiwiY2xpZW50SWQiOm51bGwsInByaXZhY3lVcmwiOiJodHRwOi8vZXhhbXBsZS5jb20vcHAiLCJ1c2VyQWdyZWVtZW50VXJsIjoiaHR0cDovL2V4YW1wbGUuY29tL3RvcyIsImJhc2VVcmwiOiJodHRwczovL2Fzc2V0cy5icmFpbnRyZWVnYXRld2F5LmNvbSIsImFzc2V0c1VybCI6Imh0dHBzOi8vY2hlY2tvdXQucGF5cGFsLmNvbSIsImRpcmVjdEJhc2VVcmwiOm51bGwsImFsbG93SHR0cCI6dHJ1ZSwiZW52aXJvbm1lbnROb05ldHdvcmsiOnRydWUsImVudmlyb25tZW50Ijoib2ZmbGluZSIsInVudmV0dGVkTWVyY2hhbnQiOmZhbHNlLCJicmFpbnRyZWVDbGllbnRJZCI6Im1hc3RlcmNsaWVudDMiLCJiaWxsaW5nQWdyZWVtZW50c0VuYWJsZWQiOnRydWUsIm1lcmNoYW50QWNjb3VudElkIjoic2d2biIsImN1cnJlbmN5SXNvQ29kZSI6IlVTRCJ9LCJtZXJjaGFudElkIjoiNXB3eGI0dHk2djlibmZ4OCIsInZlbm1vIjoib2ZmIn0=");
-                startActivityForResult(dropInRequest.getIntent(CartActivity.this), PAYMENT_REQUEST_CODE);
+                    //submit payment
+                    DropInRequest dropInRequest = new DropInRequest().clientToken(String.valueOf(token[1]));
+                    startActivityForResult(dropInRequest.getIntent(CartActivity.this), PAYMENT_REQUEST_CODE);
 
-                //submit order to server
+                    //submit order to server
                 /*compositeDisposable.add(Common.cartRepository.getCartItems()
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
@@ -291,10 +292,32 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartA
                         }));*/
 
 
-            }
-        });
+                }
+            });
+            builder.show();
+        } else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(CartActivity.this);
+            builder.setTitle("Not Login");
+            builder.setMessage("Please login or register account to submit order!");
 
-        builder.show();
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            }).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    //required login
+                    startActivity(new Intent(CartActivity.this, MainActivity.class));
+                    finish();
+                }
+            });
+
+            builder.show();
+        }
+
     }
 
     private void sendOrderToServer(double sumPrice, List<Cart> carts, String orderComment, String orderAddress) {
@@ -309,8 +332,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartA
 
                                 //clear cart when submit success
                                 Common.cartRepository.emptyCart();
-
-                                startActivity(new Intent(CartActivity.this, HomeActivity.class));
+                                finish();
                             }
                         }
 

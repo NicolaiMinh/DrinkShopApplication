@@ -10,7 +10,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
+import android.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -27,7 +27,10 @@ import android.widget.Toast;
 import com.daimajia.slider.library.SliderLayout;
 import com.daimajia.slider.library.SliderTypes.BaseSliderView;
 import com.daimajia.slider.library.SliderTypes.TextSliderView;
+import com.facebook.accountkit.Account;
 import com.facebook.accountkit.AccountKit;
+import com.facebook.accountkit.AccountKitCallback;
+import com.facebook.accountkit.AccountKitError;
 import com.ipaulpro.afilechooser.utils.FileUtils;
 import com.nex3z.notificationbadge.NotificationBadge;
 import com.squareup.picasso.Picasso;
@@ -40,6 +43,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.hdodenhof.circleimageview.CircleImageView;
+import dmax.dialog.SpotsDialog;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Consumer;
@@ -53,7 +57,9 @@ import minh.com.drinkshop.databases.local.FavoriteDataSource;
 import minh.com.drinkshop.databases.local.RoomDatabase;
 import minh.com.drinkshop.model.Banner;
 import minh.com.drinkshop.model.Category;
+import minh.com.drinkshop.model.CheckUserResponse;
 import minh.com.drinkshop.model.Drink;
+import minh.com.drinkshop.model.User;
 import minh.com.drinkshop.retrofit.IDrinkShopAPI;
 import minh.com.drinkshop.utils.Common;
 import minh.com.drinkshop.utils.ProgressRequestBody;
@@ -128,13 +134,20 @@ public class HomeActivity extends AppCompatActivity
         imageAvatar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                chooseImage();//choose image from image avatar
+                if (Common.currentUser == null) {
+                    chooseImage();//choose image from image avatar
+                }
             }
         });
 
-        //set user information
-        txt_name.setText(Common.currentUser.getName());
-        txt_phone.setText(Common.currentUser.getPhone());
+        if (Common.currentUser != null) {//if we not login
+            //set user information
+            txt_name.setText(Common.currentUser.getName());
+            txt_phone.setText(Common.currentUser.getPhone());
+
+            //set imageAvatar
+            setImageAvatar();
+        }
 
         //get banners
         getBannersImage();
@@ -143,11 +156,105 @@ public class HomeActivity extends AppCompatActivity
         //get newest topping list
         getToppingList();
 
-        //set imageAvatar
-        setImageAvatar();
-
         //init room persistence database
         initRoomPersistence();
+
+//        checkSessionLogin();// if user already logged, just login again
+        checkSessionLoginWithSGVN();
+    }
+
+    private void checkSessionLoginWithSGVN() {
+        final AlertDialog alertDialog = new SpotsDialog(HomeActivity.this);
+        alertDialog.show();
+        alertDialog.setMessage("Please wait...");
+        mService.checkUserExists("01")
+                .enqueue(new Callback<CheckUserResponse>() {
+                    @Override
+                    public void onResponse(Call<CheckUserResponse> call, Response<CheckUserResponse> response) {
+                        CheckUserResponse userResponse = response.body();
+                        if (userResponse.isExists()) {
+                            //request information of current user
+                            mService.getUserInformation("01")
+                                    .enqueue(new Callback<User>() {
+                                        @Override
+                                        public void onResponse(Call<User> call, Response<User> response) {
+                                            Common.currentUser = response.body();
+                                            if (Common.currentUser != null) {
+                                                alertDialog.dismiss();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<User> call, Throwable t) {
+                                            alertDialog.dismiss();
+                                            Log.d("Error", t.getMessage());
+                                        }
+                                    });
+                        } else {
+                            //if user not exist on database, just make login
+                            startActivity(new Intent(HomeActivity.this, MainActivity.class));
+                            finish();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<CheckUserResponse> call, Throwable t) {
+                        Log.d("Error", t.getMessage());
+                    }
+                });
+    }
+
+    private void checkSessionLogin() {
+        final AlertDialog alertDialog = new SpotsDialog(HomeActivity.this);
+        alertDialog.show();
+        alertDialog.setMessage("Please wait...");
+
+        //Check exist user on server (My sql)
+        AccountKit.getCurrentAccount(new AccountKitCallback<Account>() {
+            @Override
+            public void onSuccess(final Account account) {
+                mService.checkUserExists(account.getPhoneNumber().toString())
+                        .enqueue(new Callback<CheckUserResponse>() {
+                            @Override
+                            public void onResponse(Call<CheckUserResponse> call, Response<CheckUserResponse> response) {
+                                CheckUserResponse userResponse = response.body();
+                                if (userResponse.isExists()) {
+                                    //request information of current user
+                                    mService.getUserInformation(account.getPhoneNumber().toString())
+                                            .enqueue(new Callback<User>() {
+                                                @Override
+                                                public void onResponse(Call<User> call, Response<User> response) {
+                                                    Common.currentUser = response.body();
+                                                    if (Common.currentUser != null) {
+                                                        alertDialog.dismiss();
+                                                    }
+                                                }
+
+                                                @Override
+                                                public void onFailure(Call<User> call, Throwable t) {
+                                                    alertDialog.dismiss();
+                                                    Log.d("Error", t.getMessage());
+                                                }
+                                            });
+                                } else {
+                                    //if user not exist on database, just make login
+                                    startActivity(new Intent(HomeActivity.this, MainActivity.class));
+                                    finish();
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call<CheckUserResponse> call, Throwable t) {
+                                Log.d("Error", t.getMessage());
+                            }
+                        });
+            }
+
+            @Override
+            public void onError(AccountKitError accountKitError) {
+                Log.d("Error", accountKitError.getErrorType().getMessage());
+            }
+        });
     }
 
     private void initRoomPersistence() {
