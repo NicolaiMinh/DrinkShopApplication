@@ -8,6 +8,7 @@ import minh.com.drinkshop.databases.datasource.FavoriteRepository;
 import minh.com.drinkshop.databases.local.RoomDatabase;
 import minh.com.drinkshop.model.Category;
 import minh.com.drinkshop.model.Drink;
+import minh.com.drinkshop.model.Order;
 import minh.com.drinkshop.model.User;
 import minh.com.drinkshop.retrofit.IDrinkShopAPI;
 import minh.com.drinkshop.retrofit.RetrofitClient;
@@ -25,6 +26,7 @@ public class Common {
     public static final String TOPPING_MENU_ID = "3";// ID =3 TRONG MYSQL
     public static User currentUser = null;
     public static Category currentCategory = null;
+    public static Order currentOrder = null;
 
     //save data khi fetch tu server
     public static List<Drink> toppingList = new ArrayList<>();
@@ -57,4 +59,20 @@ public class Common {
     public static FavoriteRepository favoriteRepository;
 
 
+    public static String convertCodeToStatus(int orderStatus) {
+        switch (orderStatus) {
+            case 0:
+                return "Placed";
+            case 1:
+                return "Processing";
+            case 2:
+                return "Shipping";
+            case 3:
+                return "Shipped";
+            case -1:
+                return "Cancel";
+            default:
+                return "Order error";
+        }
+    }
 }

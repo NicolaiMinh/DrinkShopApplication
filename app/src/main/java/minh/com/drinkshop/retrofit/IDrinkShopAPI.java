@@ -71,4 +71,10 @@ public interface IDrinkShopAPI {
     @POST("braintree/checkout.php")
     Call<String> payment(@Field("nonce") String nonce,
                          @Field("amount") String amount);
+
+    //get all order by userphone and order status
+    @FormUrlEncoded
+    @POST("getorder.php")
+    Observable<List<Order>> getAllOrdersByStatus(@Field("userPhone") String userPhone,
+                                                 @Field("status") String status);
 }

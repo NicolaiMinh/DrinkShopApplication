@@ -9,6 +9,7 @@ import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -91,6 +92,8 @@ public class HomeActivity extends AppCompatActivity
     private CategoryAdapter mAdapter;
     private List<Category> categoryList;
 
+    SwipeRefreshLayout swipeRefreshLayout;
+
     //rxjava
     CompositeDisposable compositeDisposable = new CompositeDisposable();
 
@@ -107,6 +110,8 @@ public class HomeActivity extends AppCompatActivity
         //setting slider
         sliderLayout = findViewById(R.id.slider);
 
+        //swipe layout in content home
+        swipeRefreshLayout = findViewById(R.id.swipe_to_refresh);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -140,27 +145,39 @@ public class HomeActivity extends AppCompatActivity
             }
         });
 
-        if (Common.currentUser != null) {//if we not login
-            //set user information
-            txt_name.setText(Common.currentUser.getName());
-            txt_phone.setText(Common.currentUser.getPhone());
 
-            //set imageAvatar
-            setImageAvatar();
-        }
+        //swipe refresh layout
+        swipeRefreshLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                //get banners
+                getBannersImage();
+                setupRecyclerCategory();
 
-        //get banners
-        getBannersImage();
-        setupRecyclerCategory();
+                //get newest topping list
+                getToppingList();
+            }
+        });
 
-        //get newest topping list
-        getToppingList();
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                swipeRefreshLayout.setRefreshing(true);
+                //get banners
+                getBannersImage();
+                getCategoryItem();
+
+                //get newest topping list
+                getToppingList();
+            }
+        });
 
         //init room persistence database
         initRoomPersistence();
 
 //        checkSessionLogin();// if user already logged, just login again
-        checkSessionLoginWithSGVN();
+//        checkSessionLoginWithSGVN();
     }
 
     private void checkSessionLoginWithSGVN() {
@@ -205,56 +222,76 @@ public class HomeActivity extends AppCompatActivity
     }
 
     private void checkSessionLogin() {
-        final AlertDialog alertDialog = new SpotsDialog(HomeActivity.this);
-        alertDialog.show();
-        alertDialog.setMessage("Please wait...");
+        if (AccountKit.getCurrentAccessToken() != null) {
+            final AlertDialog alertDialog = new SpotsDialog(HomeActivity.this);
+            alertDialog.show();
+            alertDialog.setMessage("Please wait...");
 
-        //Check exist user on server (My sql)
-        AccountKit.getCurrentAccount(new AccountKitCallback<Account>() {
-            @Override
-            public void onSuccess(final Account account) {
-                mService.checkUserExists(account.getPhoneNumber().toString())
-                        .enqueue(new Callback<CheckUserResponse>() {
-                            @Override
-                            public void onResponse(Call<CheckUserResponse> call, Response<CheckUserResponse> response) {
-                                CheckUserResponse userResponse = response.body();
-                                if (userResponse.isExists()) {
-                                    //request information of current user
-                                    mService.getUserInformation(account.getPhoneNumber().toString())
-                                            .enqueue(new Callback<User>() {
-                                                @Override
-                                                public void onResponse(Call<User> call, Response<User> response) {
-                                                    Common.currentUser = response.body();
-                                                    if (Common.currentUser != null) {
-                                                        alertDialog.dismiss();
+            swipeRefreshLayout.setRefreshing(true);
+
+            //Check exist user on server (My sql)
+            AccountKit.getCurrentAccount(new AccountKitCallback<Account>() {
+                @Override
+                public void onSuccess(final Account account) {
+                    mService.checkUserExists(account.getPhoneNumber().toString())
+                            .enqueue(new Callback<CheckUserResponse>() {
+                                @Override
+                                public void onResponse(Call<CheckUserResponse> call, Response<CheckUserResponse> response) {
+                                    CheckUserResponse userResponse = response.body();
+                                    if (userResponse.isExists()) {
+                                        //request information of current user
+                                        mService.getUserInformation(account.getPhoneNumber().toString())
+                                                .enqueue(new Callback<User>() {
+                                                    @Override
+                                                    public void onResponse(Call<User> call, Response<User> response) {
+                                                        Common.currentUser = response.body();
+                                                        if (Common.currentUser != null) {
+                                                            alertDialog.dismiss();
+                                                            swipeRefreshLayout.setRefreshing(false);
+                                                            //set user information
+                                                            txt_name.setText(Common.currentUser.getName());
+                                                            txt_phone.setText(Common.currentUser.getPhone());
+
+                                                            //set imageAvatar
+                                                            setImageAvatar();
+                                                        }
                                                     }
-                                                }
 
-                                                @Override
-                                                public void onFailure(Call<User> call, Throwable t) {
-                                                    alertDialog.dismiss();
-                                                    Log.d("Error", t.getMessage());
-                                                }
-                                            });
-                                } else {
-                                    //if user not exist on database, just make login
-                                    startActivity(new Intent(HomeActivity.this, MainActivity.class));
-                                    finish();
+                                                    @Override
+                                                    public void onFailure(Call<User> call, Throwable t) {
+                                                        alertDialog.dismiss();
+                                                        swipeRefreshLayout.setRefreshing(false);
+                                                        Log.d("Error", t.getMessage());
+                                                    }
+                                                });
+                                    } else {
+                                        //if user not exist on database, just make login
+                                        startActivity(new Intent(HomeActivity.this, MainActivity.class));
+                                        finish();
+                                    }
                                 }
-                            }
 
-                            @Override
-                            public void onFailure(Call<CheckUserResponse> call, Throwable t) {
-                                Log.d("Error", t.getMessage());
-                            }
-                        });
-            }
+                                @Override
+                                public void onFailure(Call<CheckUserResponse> call, Throwable t) {
+                                    Log.d("Error", t.getMessage());
+                                }
+                            });
+                }
 
-            @Override
-            public void onError(AccountKitError accountKitError) {
-                Log.d("Error", accountKitError.getErrorType().getMessage());
-            }
-        });
+                @Override
+                public void onError(AccountKitError accountKitError) {
+                    Log.d("Error", accountKitError.getErrorType().getMessage());
+                }
+            });
+        } else {
+            AccountKit.logOut();
+            //clear all activity
+            Intent intent = new Intent(HomeActivity.this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            finish();
+        }
+
     }
 
     private void initRoomPersistence() {
@@ -265,7 +302,7 @@ public class HomeActivity extends AppCompatActivity
 
     private void setImageAvatar() {
         if (!TextUtils.isEmpty(Common.currentUser.getAvatarUrl())) {
-            Picasso.with(this)
+            Picasso.with(getBaseContext())
                     .load(new StringBuilder(Common.BASE_URL)
                             .append("user_avarta/")
                             .append(Common.currentUser.getAvatarUrl()).toString())
@@ -312,6 +349,8 @@ public class HomeActivity extends AppCompatActivity
     private void displayMenu(List<Category> categories) {
         mAdapter = new CategoryAdapter(this, categories, this);
         recyclerMenu.setAdapter(mAdapter);
+
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     private void getBannersImage() {
@@ -468,7 +507,18 @@ public class HomeActivity extends AppCompatActivity
             builder.show();
 
         } else if (id == R.id.nav_favorite) {
-            startActivity(new Intent(HomeActivity.this, FavoriteActivity.class));
+            if(Common.currentUser != null){
+                startActivity(new Intent(HomeActivity.this, FavoriteActivity.class));
+            }else{
+                Toast.makeText(this, "Please login to use this feature.", Toast.LENGTH_SHORT).show();
+            }
+
+        } else if (id == R.id.nav_show_order) {
+            if(Common.currentUser != null){
+                startActivity(new Intent(HomeActivity.this, ShowOrderActivity.class));
+            }else{
+                Toast.makeText(this, "Please login to use this feature.", Toast.LENGTH_SHORT).show();
+            }
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
