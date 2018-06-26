@@ -77,4 +77,11 @@ public interface IDrinkShopAPI {
     @POST("getorder.php")
     Observable<List<Order>> getAllOrdersByStatus(@Field("userPhone") String userPhone,
                                                  @Field("status") String status);
+
+    //insert token from firebase to database
+    @FormUrlEncoded
+    @POST("updatetoken.php")
+    Call<String> updateToken(@Field("phone") String phone,
+                             @Field("token") String token,
+                             @Field("isServerToken") String isServerToken);
 }

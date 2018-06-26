@@ -48,6 +48,21 @@
         <activity android:name=".activities.SearchActivity" />
         <activity android:name=".activities.ShowOrderActivity" />
         <activity android:name=".activities.OrderDetailActivity"></activity>
+
+
+        <!--firebase message service-->
+        <service
+            android:name=".services.MyFirebaseIDService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name=".services.MyFirebaseMessaging">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

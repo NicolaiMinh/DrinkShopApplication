@@ -26,6 +26,7 @@ import com.facebook.accountkit.AccountKitLoginResult;
 import com.facebook.accountkit.ui.AccountKitActivity;
 import com.facebook.accountkit.ui.AccountKitConfiguration;
 import com.facebook.accountkit.ui.LoginType;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.rengwuxian.materialedittext.MaterialEditText;
 import com.szagurskii.patternedtextwatcher.PatternedTextWatcher;
 
@@ -92,6 +93,10 @@ public class MainActivity extends AppCompatActivity {
 
                                                         //set current user
                                                         Common.currentUser = response.body();
+
+                                                        //update user token
+                                                        updateTokenToFirebase();
+
 
                                                         //start new activity
                                                         startActivity(new Intent(MainActivity.this, HomeActivity.class));
@@ -162,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
         final AlertDialog alertDialog = new SpotsDialog(MainActivity.this);
         alertDialog.show();
         alertDialog.setMessage("Please wait...");
-        mService.getUserInformation("123456789")
+        mService.getUserInformation("987654321")
                 .enqueue(new Callback<User>() {
                     @Override
                     public void onResponse(Call<User> call, Response<User> response) {
@@ -171,6 +176,9 @@ public class MainActivity extends AppCompatActivity {
 
                         //set current user
                         Common.currentUser = response.body();
+
+                        //update user token
+                        updateTokenToFirebase();
 
                         //start new activity
                         startActivity(new Intent(MainActivity.this, HomeActivity.class));
@@ -246,6 +254,10 @@ public class MainActivity extends AppCompatActivity {
 
                                                                 //get current user
                                                                 Common.currentUser = response.body();
+
+                                                                //update token
+                                                                updateTokenToFirebase();
+
                                                                 //start new activity
                                                                 startActivity(new Intent(MainActivity.this, HomeActivity.class));
                                                                 finish();//close MainActivity
@@ -343,6 +355,10 @@ public class MainActivity extends AppCompatActivity {
                             Toast.makeText(MainActivity.this, "User register succesfully!", Toast.LENGTH_SHORT).show();
                             //current user
                             Common.currentUser = response.body();
+
+                            //update user token
+                            updateTokenToFirebase();
+
                             //start new activity
                             startActivity(new Intent(MainActivity.this, HomeActivity.class));
                             finish();//close MainActivity
@@ -397,5 +413,21 @@ public class MainActivity extends AppCompatActivity {
         isBackButtonPress = false;
         super.onResume();
 
+    }
+
+    private void updateTokenToFirebase() {
+        IDrinkShopAPI mService = Common.getAPI();
+        mService.updateToken(Common.currentUser.getPhone(), FirebaseInstanceId.getInstance().getToken(),"0")
+                .enqueue(new Callback<String>() {
+                    @Override
+                    public void onResponse(Call<String> call, Response<String> response) {
+                        Log.d("MyFirebaseIDService ", response.body());
+                    }
+
+                    @Override
+                    public void onFailure(Call<String> call, Throwable t) {
+                        Log.d("MyFirebaseIDService ", t.getMessage());
+                    }
+                });
     }
 }

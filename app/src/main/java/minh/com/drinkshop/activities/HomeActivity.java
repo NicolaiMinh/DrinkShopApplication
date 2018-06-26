@@ -184,7 +184,7 @@ public class HomeActivity extends AppCompatActivity
         final AlertDialog alertDialog = new SpotsDialog(HomeActivity.this);
         alertDialog.show();
         alertDialog.setMessage("Please wait...");
-        mService.checkUserExists("01")
+        mService.checkUserExists("123456789")
                 .enqueue(new Callback<CheckUserResponse>() {
                     @Override
                     public void onResponse(Call<CheckUserResponse> call, Response<CheckUserResponse> response) {
